@@ -1,0 +1,443 @@
+\section{Interpretation of Gohr's Neural Network: a Dual Perspective}
+\label{sec: neural_interpretation}
+In this section, we are exploring the following practical question:
+
+\begin{center}
+\textit{Can Gohr's neural network be replaced by a strategy inspired by both cryptographic differential analysis and machine learning?}
+\end{center}
+
+This section focuses on demonstrating it is possible. First of all, it should be remembered that DNNs often outperform mathematical modeling or standard machine learning approaches in supervised data-driven settings, especially on high-dimensional data. It seems to be the case because correlations found between input and output pairs during DNN training lead to more relevant characteristics than those found by experts. In other words, Gohr's neural distinguisher seems to be capable of finding a general $\mathcal{P}$ property currently unknown by cryptanalyst pundits. One may ask if we could experimentally approach this unknown $\mathcal{P}$ property that encode the neural distinguisher behavior based on our dual domain knowledge. With this question in mind, we propose our best estimate with a focus on 5 and 6 \speck rounds where the DNN achieves accuracies of 92.9\% and 78.8\% in a the real/random distinction setting. For comparison, the full DDT approach can achieve accuracies of 91.1\% and 75.8\%. In our best setting, we reached accuracy values of 92.3\% and 77.9\%.
+
+Section \ref{sec:Neural Distinguisher block explanation} discusses in details how Gohr's neural distinguisher is modeled in three blocks. Our objective here is to replace each of these individual blocks by a more interpretable one coming either from machine learning or from the  cryptanalysts' point of view. This work is thus the result of the collaboration between two worlds addressing the open question of deep learning interpretability. In the course of the study, we set forth and challenged four conjectures to estimate the $\mathcal{P}$ property learned by the DNN as detailed below.
+
+
+
+\subsection{Conjectures}
+\label{sec: conjectures}
+
+Conjectures~\ref{conj:1} \& \ref{conj:2} aim to uncover block~\ref{fig:classification-block} behavior. Conjecture~\ref{conj:basic change} tackles block~ \ref{fig:initial-convo} while Conjecture~\ref{conj:4} concerns block~\ref{fig:residual-block}.
+
+\subsubsection{The DNN can not be entirely replaced by an other machine learning model.} Ensemble-based machine learning models such as random forests \cite{breiman2001random} and gradient boosted trees \cite{ke2017lightgbm} are accurate and easier to interpret than DNNs \cite{lundberg2019explainable}. Nevertheless, DNNs outperform ensemble-based machine learning models for most tasks on high dimensional data like images. But here, as the size of our input is only 64 bits, we could legitimately wonder whether the DNN could be replaced by another ensemble-based machine learning model. Despite our small size problem, our experiments reveal that other models significantly decrease the accuracy.
+
+
+%Ensemble-based machine learning models such as random forests \cite{breiman2001random} and gradient boosted trees \cite{ke2017lightgbm} are accurate and easier to interpret than DNNs. As the input size of our problem is only 64 bits, and as we know that DNN outperforms on high dimensional data like images, we first wonder whether the DNN can be replaced by another machine learning model.
+
+
+
+%Ensemble-based machine learning models such as random forests \cite{breiman2001random} and gradient boosted trees \cite{ke2017lightgbm} are popular non-linear predictive models: they are accurate and interpretable \cite{lundberg2019explainable}. It is generally admits that the ensemble-based machine learning models are more interpretable than DNN and match their performance with small dimension data. The input size of our problem is only 64 bits, which is small. Therefore, a first natural question arises: can we replace the whole DNN by any other non-neuronal machine learning model which would be easier to interpret ?
+
+
+
+\begin{conjecture}
+\label{conj:1}
+Gohr's neural network outperforms other non-neuronal network machine learning models.
+\end{conjecture}
+
+\paragraph{Experiment:} For the rest of this paper, we will only consider Light Gradient Boosting Model (LGBM) \cite{ke2017lightgbm} as an alternative ensemble classifier for DNN and MLP. In support of our conjecture, we established that the accuracy for the LGBM model is significantly lower than the one of the DNN when the inputs are ($C_{l}, C_{r}, C_{l}', C_{r}'$), see Table~\ref{table:res_conj2}.
+
+
+
+
+
+
+\subsubsection{The final MLP block is not essential.} As described above, we can not replace the entire DNN with another non-neuronal machine learning model that is easier to interpret. However, we may be able to replace the last block of the neural distinguisher performing the final classification, by an ensemble model.
+
+\begin{conjecture}
+\label{conj:2}
+The MLP block of Gohr's neural network is not a key block to outperform the state of the art: it can be replaced by another ensemble classifier.
+\end{conjecture}
+
+\paragraph{Experiment:} We successfully exchanged the final MLP block for a LGBM model. The first attempt is a complete substitution of block 3, taking the 512-dimension output of block 2 as input. In Table~\ref{table:res_conj2}, we observe that this experiment leads to much better results than the one of conjecture \ref{conj:1} and even better results than the classical DDT method (+0.39\%). To try to get closer to neural distinguisher performance, we implemented a second attempt which is a partial substitution, taking only the 64-dimension output of the first layer of the MLP as input. From Table~\ref{table:res_conj2}, the accuracy with those inputs is much closer to the DNN. In both cases, the accuracy is close to the neural distinguisher, supporting our conjecture. At this point, in order to grasp the  unknown $\mathcal{P}$ property, one needs to understand the feature vector at the residuals' output.
+
+\begin{table}[htb!]
+\centering
+\caption{\label{table:res_conj2}A comparison of the neural distinguisher and LGBM model for 5 round, for $10^6$ samples generated of type $(C_{l}, C_{r}, C_{l}', C_{r}')$.}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{C{1.5cm}C{1.5cm}C{4cm}C{4cm}C{4cm}}
+\toprule
+\textbf{$N_5$} & \textbf{$D_5$} & \textbf{\begin{tabular}[c]{@{}c@{}} LGBM as classifier\\ for the original input\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}} LGBM as classifier\\ for the 512-feature\end{tabular}} &  \textbf{\begin{tabular}[c]{@{}c@{}} LGBM as classifier\\ for the 64-feature\end{tabular}} \\ \midrule
+92.9 \% & 91.1 \%        & 76.34  $\pm$ 2.62 \%       & 91.49 $\pm$ 0.09 \%                 & 92.36 $\pm$ 0.07 \%       \\ \bottomrule
+\end{tabular}}
+\end{table}
+
+
+%\noindent There are now two blocks to replace: the first convolutional block and the residual block.
+
+
+
+\subsubsection{The basis change.} We saw in section \ref{sec:Neural Distinguisher block explanation} that block 1 performs a linear transformation of the input. By looking at the weights of the DNN first convolution, we observe that it contains many opposite values. This indicates that the DNN is looking for differences between the input features. Consequently, we proposed a conjecture as follows.
+
+\begin{conjecture}
+\label{conj:basic change}
+Gohr's neural network first convolution layer transforms the input ($C_{l}, C_{r}, C_{l}', C_{r}'$) into ($ \Delta L, \Delta V, V_0, V_1$) and a linear combination of those terms.
+\end{conjecture}
+
+\paragraph{Experiments:} As the inputs of the first convolution are binary, we could verify our conjecture in a formal way. By forcing to one all non-zero values of the output of this layer, we calculated the truth-table of the first convolution. We thus obtained the boolean expression of the first layer for the 32 filters. We observed that eight filters were empty and the remaining twenty-four filters were simple. The results are presented in Table~\ref{tab:bolean exp} of Appendix \ref{apx}. These observations support conjecture \ref{conj:basic change}.
+
+However, one may raise the issue that setting all non-zero values to one is an oversimplified approach. We have therefore re-trained a DNN by replacing the ReLU activation function of the first layer by the Heaside function as in \cite{zhou2016dorefa}. This second DNN had the same accuracy as the first one and almost the same filter boolean expression.
+
+Finally, we trained the same DNN with the following entries $(\Delta L, \Delta V, V_0, V_1)$. Using the same method as before, we established the filters' boolean expressions. This time, we obtained twenty five null filters and seven non null filters, with the following expressions: $\Delta L$, $\overline{V_0} \land V_1$, $\overline{\Delta L }$, $\Delta L $, $\overline{V_0} \land \overline{V_1}$, $\Delta L \land \Delta V$, $\overline{\Delta L } \land \overline{\Delta V}$. Therefore, we kept only $(\Delta L, \Delta V, V_0, V_1)$ as inputs for our pipeline.
+
+%\noindent There is only one block left to replace: the residual block.
+
+\subsubsection{The Masked Ciphertext Distribution Table.} Our first assumption is that the DNN calculates a shape close to DDT in the residual block. However, two major properties of the neural distinguisher prevent us from thinking that it is a DDT in the classical sense of the term. The first one, as explained in section \ref{sec:Changing the inputs to the Neural Network.}, is the use of ($C_{l}, C_{r}, C_{l}', C_{r}'$) entries for the DNN instead of $(C_{l} \oplus C_{l}', C_{r} \oplus C_{r}')$ leading to better results presented in Table~\ref{tab:XORinputs}. The second difference is that the DNN has only approximately 10,000 floating parameters (see section \ref{Final remark, size of the model.}) to perform classification, which can be considered as size efficient. Our second assumption is therefore that the DNN is able to compress the distribution table applied to the full ciphertext. We therefore propose the following conjecture:
+
+
+
+\begin{conjecture}
+\label{conj:4}
+The neural distinguisher is capable of:
+
+\begin{enumerate}
+	\item computing a distribution table for full ciphertext.
+	\item finding several relevant masks and appling them to the ciphertext in order to compress the ciphertext distribution table.
+
+\end{enumerate}
+Let us note M-CDT this Masked-Ciphertext Distribution Table. Thus, the feature vector of the DNN can be replaced by a vector where each value represents the probability stored in the M-CDT for each mask.
+\end{conjecture}
+
+
+
+\paragraph{Ciphertext Distribution Table (CDT):} We propose to compute a DDT on the ciphertext ($C_{l}, C_{r}, C_{l}',$ $C_{r}'$) directly instead of the difference $(C_{l} \oplus C_{l}', C_{r} \oplus C_{r}')$. Thus, the abbreviation DDT no longer corresponds to what it stood for, since the distribution no longer refers to a differential. Instead we call this new table a Ciphertext Distribution Table (CDT). The entries of the CDT are 64 bits, which is not tractable for $10^7$ samples. Also, the DNN has only 10,000 parameters. The DNN is therefore able to compress the CDT.
+
+
+\paragraph{Masked Ciphertext Distribution Table (M-CDT):} A compressed CDT means that the input is not 64 bits (32-bit for the DDT) but instead a $N_h$-bit input with $N_h$ being the Hamming weight of the mask. Let us consider a mask $M \in \mathcal{M}_{N_h}$ with $\mathcal{M}_{N_h}$ the ensemble of 64-bits masks with Hamming weight $N_h$ and $M = (M_1, M_2, M_3, M_4)$, with $M_i$ a 16-bits binary mask. Compressing the CDT therefore means applying the $M$ mask to all inputs. In our case, with $I = (\Delta L, \Delta V , V_0, V_1)$, we get $I_M = $($\Delta L\land M_1, \Delta V \land M_2, V_0\land M_3, V_1\land M_4$) $ = I \land M$, before computing the CDT. By calculating that way, the number of CDT entries per mask decreases. It becomes a function that depends only on $N_h$ and on the bits position in the masks. It is therefore a more compact representation of the complete CDT. However, it turns out that if we consider only one mask, we get only one value per sample to perform the classification: $P(\texttt{Real}|I_M)$, while the DNN has a final vector size of 512. %In addition, we have seen earlier (see Section \ref{The Classification block.}) that each value in the feature vector is a non linear combination of the input as a whole.
+We consider several masks. Thus, by defining the ensemble $R_M \in \mathcal{M}_{N_h}$, the set of relevant masks of $\mathcal{M}_{N_h}$, we can calculate for a specific input $I = (\Delta L, \Delta V , V_0, V_1)$ the probability $P(\texttt{Real}|I_M), \forall M \in R_M $. Then, we concatenate all the probabilities into a feature vector of size $m=|R_M|$. We get the feature $F$ for the input $I$: $F = \bigl( \begin{smallmatrix}P(\texttt{Real}|I_{M1}) & P(\texttt{Real}|I_{M2}) \cdots P(\texttt{Real}|I_{Mm}) \end{smallmatrix}\bigr)^T$.
+
+
+
+%\begin{bmatrix}
+%	$x_1 & x_2 & \cdots & x_N$
+%\end{bmatrix}
+
+
+This approach enables us to replace block 2. Though, we still need to clarify how to get the $R_M$ ensemble.
+
+
+
+
+\paragraph{Masks matter:} Based on local interpretation methods, we can extract these masks from the DNN. Indeed, these methods consist in highlighting the most important bits of the entries for classification. Thus, by sorting the entries according to their score and by applying these local interpretation methods, we can obtain the relevant masks.
+
+
+
+\subsection{Approximating $\mathcal{P}$ Property Expression}
+
+From our conjectures, we hypothesized that we can approximate the unknown $\mathcal{P}$ property that encode the neural distinguisher behavior by the following:
+
+\begin{itemize}
+
+	\item Changing $(C,C')$ into $I = (\Delta L, \Delta V , V_0, V_1)$
+	\item Changing the 512 feature vector of the DNN by the feature vector of probabilities $F = \bigl( \begin{smallmatrix}P(\texttt{Real}|I_{M1}) & P(\texttt{Real}|I_{M2}) \cdots P(\texttt{Real}|I_{Mm}) \end{smallmatrix}\bigr)^T$
+	\item Changing the final MLP block by the ensemble machine learning model LGBM
+
+\end{itemize}
+
+This points respectively stand for block 1 to 3.
+
+
+
+
+\subsection{Implementation}
+
+The aim of this section is to precisely describe the materials and methods leding to our results. We consider that we have a DNN formed with $10^7$ data of type $(\Delta L, \Delta V, V_0, V_1)$ for rounds 5 and 6. According to the conjunctures above, we can distinguish three steps:
+
+\begin{enumerate}
+    \item Extraction of the masks from the DNN with a first dataset.
+    \item Construction of the M-CDT with a second dataset.
+    \item Training of the final classifier from the probabilities stored in the M-CDT with a third dataset.
+\end{enumerate}
+
+%Figure \ref{fig:Pipeline_replace} illustrates our pipeline.
+
+%\begin{figure}
+%\includegraphics[width=\linewidth]{fig/Pipeline_replace.png}
+%\caption{General overview of our pipeline to replace the neuro-distinguisher}
+%\label{fig:Pipeline_replace}
+%\end{figure}
+
+
+
+\subsubsection{Mask extraction from the DNN.} We first ranked $10^4$ real samples according to DNN score, as described in section \ref{sec:Analyzing the ciphertexts}. We wanted to estimate the masks from these entries. We used multiple local interpretation methods: Integrated Gradients \cite{sundararajan2017axiomatic}, DeepLift \cite{shrikumar2017learning}, Gradient Shap \cite{lundberg2017unified}, Saliency maps \cite{simonyan2013deep}, Shapley Value \cite{castro2009polynomial} and Occlusion \cite{zeiler2014visualizing}. These methods score each bit according to its importance for the classification. Following averaging by batch and by method, there were two possible ways to move forward. We could either assign a Hamming weight or else set a threshold above which all bits would be one. We chose the first option and set the Hamming weight to 18. This approach allowed us to build the $R_M$ ensemble of the relevant masks .
+
+%\begin{figure}
+%  \includegraphics [width=\linewidth]{fig/compare.png}
+%  \caption{Visualization of the relative importance of each bit for a batch with score between 1 and 0.5, for local interpretation methods Deeplift, Gradient Shap, Feature Ablation and Saliency maps, with the sum of the absolute values as averaging method.}
+%  \label{fig:compraraison}
+%\end{figure}
+
+\paragraph{Implementation details:} We used the captum library\footnote{ \href{https://github.com/pytorch/captum}{Github link}} which brings together multiple methods on local interpretation. The dataset is divided into batches of about size 2,500 and grouped by scores. The categories we used were: scores 1 to 0.9 (about 2,000 samples), scores 0.9 to 0.5 (about 500 samples), scores 1 to 0.8 (about 2,100 samples), scores 1 to 0.5 (about 2,500 samples). This way, taking one score per method could be derived for each bit of each sample. We then proposed several methods to average these importance scores by bit of category: the sum of absolute values, the median of absolute values, the average of absolute values. Then, we took the 18 best values and we obtained a mask. There is one mask per score, one per local interpretation method and one per averaging method. On average, for 5,000 samples we generate about 100 relevant masks. Finally, thanks to methods available in scikit-learn \cite{pedregosa2011scikit}, we ranked the features and so the masks according to their performance. After multiple repetitions of mask generation and selection at every time, we obtained 50 masks that are effective. The final ensemble of masks is the addition of those 50 effective masks and the generated relevant masks.
+
+
+%we will see later \ref{sec:Mask analysis} that it is possible to compare these masks according to their performance. After multiple repetitions of mask generation and selection at every time, we have obtained 50 masks that are effective. Let's call these 50 masks "efficient masks". They can be found in the Appendix Table~\ref{tab:all good masks}. Unless contra-indicated, each mask generation will be added to these efficient masks.
+
+
+
+
+
+
+%\paragraph{Final remarks:} After experimentation, we established that random masks do not work. It is therefore difficult to quantify the quality of a mask. Moreover, several questions remain open: is it possible to calculate "theoretical masks", or to establish relevant masks without DNN?
+
+
+\subsubsection{Constructing the M-CDT.} Once the ensemble of relevant $R_M$ masks is determined, we compute the M-CDT. The Algorithm \ref{algo:Ms-CTDT} describes our construction method which is similar to that of the DDT. The inputs of the algorithm include a second dataset composed of $n = 10^7$ real samples of type $I = (\Delta L, \Delta V, V_0, V_1)$, and the set of relevant masks $R_M$. The output is the M-CDT dictionary with the mask as first key, the masked input as second key, and $P(\texttt{Real}|I \land M) = P(\texttt{Real}|I_M)$ as value.
+
+The M-CDT dictionary is constructed as follow: first, for each mask $M$ in $R_M$, we compute the corresponding masked-dataset $\mathcal{D}_{M}$ which is simply the operation $I_M = I \land M$ for all $I$ in $\mathcal{D}$. Secondly we compute a dictionary $U$ with key the element of ${D}_{M}$ and with value the number occurrence of that element in ${D}_{M}$. Then, we compute for all element $I_M$ in $\mathcal{D}_{M}$ the probability:
+
+\begin{equation*}
+P(\texttt{Real} | I_M) = \frac{P(I_M|\texttt{Real})P(\texttt{Real})}{P(I_M|\texttt{Real})P(\texttt{Real}) + P(I_M|\texttt{Random})P(\texttt{Random})}
+\end{equation*}
+
+with $P(\texttt{Real}) = P(\texttt{Random}) = 0.5$, $P(I_M|\texttt{Random}) = 2^{-N_h(M)}$ with $N_h(M)$ the Hamming weight of $M$ and $P(I_M|\texttt{Real}) = \frac{1}{n}\times U[I_M] $. Finally we update M-CDT as follow: M-CDT[$M$][$I_M$] = $P(\texttt{Real} |I_M)$.
+
+%\begin{algorithm}
+%\caption{\label{algo:Ms-CTDT} Function used to construct the masked-ciphertext distribution table (M-CDT) from a dataset and a set of relevant masks}
+%\begin{algorithmic} [1]
+%\Function{Build M-CDT}{$\mathcal{D},R_M$}
+%\State M-CDT = \{\}
+%\State $n = |\mathcal{D}|$
+%\State $P(\texttt{Real}) = 0.5$
+%\State $P(\texttt{Random}) = 0.5$
+%\ForAll{$M$ in $R_M$}
+%%\State M-CDT$[M] = \{\}$
+%\State $N_h(M)$ = number of 1 in $M$
+%\State $\mathcal{D}_{M} = \mathcal{D} \land M$  \Comment{$\forall I \in \mathcal{D}, I_M = I \land M$}
+%\State U = Unique($\mathcal{D}_{M}$) \Comment{Return a dictionary with key the element of ${D}_{M}$ and with value the number occurrence of that element in ${D}_{M}$}
+%\ForAll{$I_M$ in $\mathcal{D}_{M}$}
+%\State $P(I_M|\texttt{Random}) = 2^{-N_h(M)}$
+%\State $P(I_M|\texttt{Real}) = \frac{1}{n}\times U[I_M] $
+%\State $P(\texttt{Real} | I_M) = \frac{P(\texttt{Real})P(I_M|\texttt{Real})}{P(I_M|\texttt{Real})P(\texttt{Real}) + P(I_M|\texttt{Random})P(\texttt{Random})}$
+%\State M-CDT[$M$][$I_M$] = $P(\texttt{Real} |I_M)$
+%\EndFor
+%\EndFor
+%\State \Return  M-CDT
+%\EndFunction
+%\end{algorithmic}
+%\end{algorithm}
+
+
+%\paragraph{Implementation Details:} Using our device, In general, for 100 masks of hamming weight 18 and $10^7$ samples, the M-CDT is computed in around one minute on our devices, and has about 50 000 entries.
+
+
+\subsubsection{Training the classifier on probabilities.} Upon building the M-CDT, we can start training the classifier. Given a third dataset $\mathcal{D} =\{(input_0, y_0) ...$ $ (input_n, y_n) \}$, with $input_j$ a sample of type ($C, C'$), transformed into $(\Delta L, \Delta V,$
+$ V_0, V_1)$ and the label $y_j \in [0, 1]$, with $n = 10^6$, we first compute the feature vector $F_j = \bigl( \begin{smallmatrix}P(\texttt{Real}|I_j \land {M1}) & P(\texttt{Real}|I_j \land {M2}) \cdots P(\texttt{Real}|I_j \land {Mm}) \end{smallmatrix}\bigr)^T$ for all inputs and for $m = |R_M|$. Next, we determined the optimal $\theta$ parameters for the $g_\theta$ model according equation \ref{eq:opti}, with $L$ being the square loss. Here, the $g_\theta$ classifier is Light Gradient Boosting (LGBM) \cite{ke2017lightgbm}.%try Random Forest (RF) \cite{breiman2001random}, Light Gradient Boosting (LGBM) \cite{ke2017lightgbm}, a MLP and a Linear Regression (LR).
+
+
+\paragraph{Implementation Details:} Model hyper-parameters fine-tuning has been done by grid search. Results were obtained by cross-validation on 20\% of the train set and the test set has $10^5$ samples. Finally, results are obtained on the complete pipeline for three different seeds, five times for every seed.
+
+
+\subsection{Results}
+
+The M-CDT pipeline was implemented with numpy, scikit-learn \cite{pedregosa2011scikit} and pytorch \cite{paszke2019pytorch}. The project code can be found at XXX. Our work station is constituted of a GPU nvidia GeForce GTX 970 with 4043MiB memory and four intel core i5-4460 of frequency 3.20GHz.
+
+
+\subsubsection{General.} Table~\ref{table:results_general} shows accuracies of the DDT, the DNN and our M-CDT pipeline for rounds 5 and 6 for $1.1 \times 10^7$ generated samples. When compared to DNN and DDT, our M-CDT pipeline reached an intermediate performance right below DNN. The main difference is the true positive rate which is higher in our pipeline. This can be explained by the fact that our M-CDT preprocessing only considers real samples. Our M-CDT pipeline successfully models the $\mathcal{P}$ property, creating a bridge between deep learning and cryptanalysis.
+
+
+
+%Our pipeline reaches an intermediate performance between the two methods for 5 and 6 rounds: it outperforms the DDT method by, respectively for 5 and 6 rounds, +XXX\% and +XXX\%, and slightly under performs the DDT method by XXX\% and XXX\%.  This is what we wanted: our method is a bridge between our method and the XXX method. So, in terms of performance, our idea of modeling the $\mathcal{P}$ property through our pipeline seems to work well.
+
+
+
+\begin{table}[htb!]
+\centering
+\caption{\label{table:results_general} A comparison of the Gohr's Neural Network, the DDT and our pipeline accuracies for around 150 masks generated each time, with input $(\Delta L, \Delta V, V_0, V_1)$, LGBM as classifier and $1.1 \times 10^7$ samples generated in total.}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{C{1cm}C{3cm}C{3cm}C{3cm}C{3cm}}
+\toprule
+Rd & Distinguisher & Accuracy & TPR & TNR \\
+\midrule
+\multirow{3}{*}{5} & $D_5$ & 91.1 \% & 87.7 \% & 94.7 \%\\
+				   & $N_5$ & $92.9 \% \pm 0.05$ & $90.4 \%\pm 0.08$ & $95.4 \% \pm 0.06$\\
+				   & \textit{M-CDT (Our)}  & $92.32 \% \pm 0.08 $ & $95.52 \% \pm 0.09$ & $89.12 \% \pm 0.15 $\\
+\midrule
+\multirow{3}{*}{6} & $D_6$ & 75.8 \% & 68.0 \% & 83.7 \% \\
+				   & $N_6$ & $78.8 \% \pm 0.08$ & $72.4 \% \pm 0.01$ & $85.3 \% \pm 0.1$\\
+				   & \textit{M-CDT (Our)}  & $77.91 \% \pm 0.1$ & $85.22 \pm 0.12$ & $70.60 \pm 0.16$\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+
+
+
+
+
+
+\subsubsection{Matching.} In order to ascertain model correspondence quantitatively, Table~\ref{tab:comparison matching} summaries the prediction agreement between the two models. We compared the DNN trained on samples type $(\Delta L, \Delta V, V_0, V_1)$ and our pipeline. On round 5, we observe a satisfactory 97.46\% identical predictions, and 91.34\% of both identical and correct predictions. On round 6, we perform less well, with only 93.08\% identical prediction and 75.26\% of both identical and correct predictions.
+
+%We now want to quantify the correspondence between the two models. In Figure \ref{fig:yx}, we plot, for $10^5$ samples, the score proposed by DNN to classify the sample as real with the score proposed by our pipeline (5 rounds, 50 good masks, LGBM as classifier). Two important points can be observed. The first is that the areas around the origin and the point (1,1) are very dense, which is positive: both models seem to be safe for the same samples. However, the variance around y=x is quite high: we can observe the existence of some extreme points such as (0.1, 0.8) or (0.9, 0.1).
+
+We thus demonstrated that our method advantageously approximates the performance of the neural distinguisher. With an initial basis change on the inputs, further computing a M-CDT for a set of masks extracted from the DNN and then classifying the resulting feature vector with LGBM, we achieved a efficient yet more easily interpretable approach. Indeed, DNN obscure features are approached in our pipeline, by $P(\texttt{Real}|I_M)$. Finally, we interpret the performance of the classifier globally (e.g. retrieving the decision tree) and locally (e.g. deducing which feature played the greatest role in the classification for each sample) as in \cite{lundberg2019explainable}. Those results are not displayed as it is not the purpose of this paper, but can be found in the code project.
+
+%So it seems that we can answer to the initial question of the paragraph. By performing an initial base change on the inputs, by performing a M-CDT for a set of masks extracted from the DNN and by classifying the resulting feature vector, we can approximate the performance of the DNN. And our method is more easily interpretable, with minimal loss of performance. We can now study the influence of the input, the masks and the classifier on the results.
+
+
+
+%\begin{figure}
+%  \includegraphics[width=\linewidth]{fig/yx.png}
+%  \caption{Visualisation for $10^5$ samples, of 5 rounds of the score proposed by the DNN to classify the sample as real with the score proposed by our pipeline, with , 50 good masks and LGBM as classifier. The green areas are matching areas.}
+%  \label{fig:yx}
+%\end{figure}
+
+
+
+
+
+\begin{table}[htb!]
+\centering
+\caption{\label{tab:comparison matching} A comparison of the Gohr's Neural Network predictions and our pipeline predictions for around 150 masks generated each time, with input $(\Delta L, \Delta V, V_0, V_1)$, LGBM as classifier and $1.1 \times 10^7$ samples generated in total.}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{C{1cm}C{3cm}C{2cm}C{3cm}C{3cm}}
+\toprule
+\textbf{Nr}  & \textbf{Model}                   & \textbf{Accuracy} & \textbf{Matching}   & \textbf{Matching \& equal to label} \\ \midrule
+\multirow{2}{*}{5} & \textit{$N_5$}                   & 92.9\%              & \multirow{2}{*}{97.46 \% $\pm$ 0.06} & \multirow{2}{*}{91.34 \% $\pm$ 0.08}                                                                               \\
+&\textit{M-CDT (Our)}                     & 92.3\%               &                     &                                                                                                   \\ \midrule
+\multirow{3}{*}{6} & \textit{$N_6$}                   & 78.8 \%              & \multirow{2}{*}{93.08\% $\pm$ 0.07} & \multirow{2}{*}{75.26 $\pm$ 0.11}                                                                               \\
+& \textit{M-CDT (Our)} & 77.9\%               &                     &                                                                                                   \\ \bottomrule
+\end{tabular}}
+\end{table}
+
+
+%
+%
+%\subsection{Pipeline analysis}
+%
+%Many points of our method could be changed, analysed and improved. Here we propose the few studies we have carried out.
+%
+%\subsubsection{Inputs analysis}
+%
+%
+%The table \ref{table:analysis_input} proposes a study of the influence of the input. Several points can be observed. The first one is that the results of our modeling perform badly on $C0L, C0R, C1L, C1R$ inputs. Second, the best results are obtained for the three inputs $\Delta$L', $\Delta$V', V0'. So it seems that 48 bits input does not influence the results. In view of these results, one can wonder if this first one which makes a basic change is not the most important step of the process. And so with the entries $\Delta$L', $\Delta$V', V0' and any non-linear classifier, we can obtain the same results as DNN. We will see in Section XXX that this is partially true.
+%
+%
+%\begin{table}[htb!]
+%\label{table:analyse_input}
+%\caption{Study of the influence of the input on results for 6 rounds. Between 100 - 200 Masks are generated each time. In bold the accuracy greater that the DDT Distinguisher (75.9\%)}
+%\begin{tabular}{|c|ccccccccc}
+%\cline{1-1}
+%\textit{Input 0}                                                          & $\Delta$L'                                        & $\Delta$L'                                        & $\Delta$L'                                        & $\Delta$L'                                         & $\Delta$L'                                         & $\Delta$L'                                  & $\Delta$V'                                  & $\Delta$L'                         & C0L                          \\ \cline{1-1}
+%\textit{input 1}                                                          & $\Delta$V'                                        & $\Delta$V'                                        & V0'                                        & $\Delta$V'                                         & V0'                                         & V0'                                  & V0'                                  & $\Delta$V'                         & C0R                          \\ \cline{1-1}
+%\textit{input 2}                                                          & V0'                                        & V0'                                        & V1'                                        & V1'                                         & V1'                                         & V1'                                  & V1'                                  & -                           & C1L                          \\ \cline{1-1}
+%\textit{input 3}                                                          & -                                          & V1'                                        & -                                          & -                                           & C1R\textasciicircum{}C0L                    & C0L                                  & $\Delta$R'                                  & -                           & C1R                          \\ \hline
+%\textit{\textbf{\begin{tabular}[c]{@{}c@{}}Accuracy\\ LGBM\end{tabular}}} & \multicolumn{1}{c|}{{ \textbf{77.9\%}}} & \multicolumn{1}{c|}{{ \textbf{77.8\%}}} & \multicolumn{1}{c|}{{ \textbf{77.1\%}}} & \multicolumn{1}{c|}{{ \textbf{77.0 \%}}} & \multicolumn{1}{c|}{{ \textbf{77.0 \%}}} & \multicolumn{1}{c|}{\textbf{76.5\%}} & \multicolumn{1}{c|}{\textbf{76.2\%}} & \multicolumn{1}{c|}{75.7\%} & \multicolumn{1}{c|}{72.15\%} \\ \hline
+%\end{tabular}
+%\end{table}
+%
+%
+%
+%\subsubsection{Mask analysis}
+%\label{sec:Mask analysis}
+%
+%As mentioned in paragraph XXX, choosing 50 good masks after several attempts and applying them is a more efficient strategy than accumulating 300 average masks. We explained in paragraph XXX how we found the masks. Here we will see how we compare them. We propose 3 methods: comparison according to their importance for the final classification, comparison with random masks according to 3 criteria, and the independence between the masks.
+%
+%
+%
+%\paragraph{Compare their importance for classification} Even if ensemble classifiers are difficult to analyze, they remain much more interpretable than neural networks (XXX refs). Libraries such as scikit-learn offer direct methods of interpretation after model training. For example, one can compare the relative importance of features for the model, as in Figure \ref{fig:features}. This ranking is based on the model's average decision tree (here LGBM), which is shown in Figure \ref{fig:tree}. The more a mask is involved in ranking a significant part of the dataset, the better it is ranked. Figure \ref{fig:features} shows that out of the hundred of features (each coming from a mask) found by our methods, only about ten are decisive in the classification: these 10 masks can be kept. Then to these 10 masks, we add a hundred masks. Then we reclassify them and we keep only 20, and we can keep going like this. The 50 good masks that resulted in table \ref{table:results_general2} were created with this method.
+%
+%
+%
+%\begin{figure}
+%  \includegraphics[width=\linewidth]{fig/features.png}
+%  \caption{Study compraraison features}
+%  \label{fig:features}
+%\end{figure}
+%
+%
+%
+%
+%\begin{figure}
+%  \includegraphics[width=\linewidth]{fig/tree.png}
+%  \caption{Study tree}
+%  \label{fig:tree}
+%\end{figure}
+%
+%
+%\paragraph{Comparison with random masks} In order to compare the masks found by local interpretation methods and random masks, we have determined three criteria: the accuracy of the classification if we use the probability of this particular mask, its hamming number and its CDT compression factor. Figure \ref{fig:Evaluation} shows a visualization of these three criteria for masks extracted from the DNN and random masks. We can observe that best masks have a better accuracy and a higher compression ratio.
+%
+%
+%
+%\begin{figure}
+%  \includegraphics[width=\linewidth]{fig/evaluate masks.pdf}
+%  \caption{Comparison of masks extracted from the DNN and random masks according: the accuracy of the classification if we use the probability of this particular mask, its hamming number and its CDT compression factor}
+%  \label{fig:Evaluation}
+%\end{figure}
+%
+%
+%
+%\paragraph{Independence study}: Here we want to know if the masks from the DNN are independent of each other. For that, we compute for each mask a probability vector of size n, n being the size of the data set. Then, we perform a statistical test between two of these vectors to estimate if these two feature vector and thus these masks are independent or not. Here, as the characteristics are quantitative, we compute the F-value of the analysis of variance (ANOVA) between each characteristic. The results are given in figure \ref{fig:independence}. Thus, 2 masks are independent if the value in a cell is greater than $\alpha$ (usually 5\%). For example, masks 1 and 49 are independent masks. We can observe that most of the masks are dependent. This can be explained by the fact that the modular addition has spread the differential XXX TODO HELP HERE XXX.
+%
+%\begin{figure}
+%  \includegraphics[width=\linewidth]{fig/dependance_mask.pdf}
+%  \caption{Analysis of the independence between the masks by the ANOVA test. Visualization of the p-value as a function of the masks. Values performed for 5 rounds}
+%  \label{fig:independance}
+%\end{figure}
+%
+%
+%\paragraph{Apply the masks found in the 5th round to the 6th round.}
+%
+%Given the dependency of the masks on each other, one can wonder if the masks between round r and round r+1 are not strongly dependent. Therefore, Table \ref{table:5_to_6} shows the results of the 50 high performance masks over 5 rounds applied to the 6 and 7 rounds. It can be seen that, although they are still below the DNN performance, the results are still relatively good.
+%
+
+
+
+%\begin{table}[htb!]
+%\label{table:5_to_6}
+%\caption{A comparison of Gohr's Neural Network and our pipeline for  50 good pre-selected masks on 5 rounds applied on 6 and 7, with input $\Delta$L' $\Delta$V' V0' V1' and LGBM as classifier.}
+%\begin{tabular}{@{}cccc@{}}
+%\toprule
+%Methode      & \textbf{Accuracy 5 round} & \textbf{Accuracy 6 round} & \textbf{Accuracy 7 round} \\ \midrule
+%\textit{DNN} & 92.9 \%                   & 78.6 \%                   & 61.7 \%                   \\
+%\textit{Our} & 92.4 \%                   & 78.0 \%                   & 60.3 \%                   \\ \bottomrule
+%\end{tabular}
+%\end{table}
+
+
+
+
+
+
+%\subsubsection{Classification analysis}
+
+%\paragraph{General}
+
+%We saw that several classification models can be used as the final brick in our pipeline. Table XXX compares the performance of these classifiers. We can notice that the linear regression is less performant than the 3 models which are equivalent. This confirms our hypothesis \ref{table:classification_compare} described above: MLP can be replaced.
+
+%\begin{table}[htb!]
+%\label{table:classification_compare}
+%\caption{A comparison of Gohr's Neural Network and our pipeline for  50 good pre-selected masks on 5 rounds with input $\Delta$L' $\Delta$V' V0' V1' and LGBM / RF/ LR / MLP as classifier.}
+%\begin{tabular}{@{}ccclll@{}}
+%\toprule
+%Methods                            & \textit{DNN} & \textit{Our - LGBM} & %\textit{Our - RF} & \textit{Our - MLP} & \textit{Our - LR} \\ \midrule
+%\textit{\textbf{Accuracy 5 round}} & 92.9 \%      & 92.4 \%             & 92.3 \%           & 92.4 \%            & 90.8 \%           \\ \bottomrule
+%\end{tabular}
+%\end{table}
+
+
+%\paragraph{Is conjecture \ref{XXX} false ?}
+
+%In section XXX, we asked ourselves whether the initial change of base was not the most important step. And that, with the entries $\Delta$L', $\Delta$V', V0' and any non-linear classifier, we can get the same results as DNN. So in the general case, it doesn't work. We must also add a second condition. This condition comes from an observation of the model that we haven't seen until now. We can see that the initial input is 64 bits and the intermediate feature vector is 512. And it would seem that reducing this dimension to 512 leads to a degradation of the performance. In fact, it can be observed that the number of filters in the convolutions of block 2 can be reduced, but the number of features at the end must be greater than 256, otherwise the performances degrade. Therefore, by proposing a 3-layer MLP type classification model with the first layer going from dimension 64 to 1024, the second from 1024 to 512 and the third from 512 to 1, it is possible to obtain 92\% accuracy and thus eliminate the 10 CNN layers. However, if the first layer has a smaller dimension than 1024, the performance degrades very quickly.
+
+
+
+
+
+\subsection{Application on \simon Cipher}
+
+We previously demonstrated that our pipeline can replace the neural distinguisher while achieving similar performances on round 5 and 6 of \speck. But could this method be generalized to other ARX-family ciphers like \simon ? The answer is yes, we can. In fact, applying the exact same pipeline to \simon leads to 82.2\% accuracy for the classification, whereas the neural distinguisher achieves 83.4\% accuracy. Moreover, the matching between the two model is up to 92.4\%.
+
+
+\subsection{Discussions}
+
+
+
+From the cryptanalysts' stand point, one important aspect of using the neural distinguisher is to uncover the $\mathcal{P}$ property learned by the Deep Neural Network. Unfortunately, while being powerful, Gohr’s Neural Network remains opaque and does not allowed unraveling the property. %This enables ..... (? to identify the P property ?). Cryptographers will thus be able to .... Work is underway to refine our model while tackling some open issues (e.g. masks).
+
+
+%Basically, the neuro-distinguisher proposed by Gorh is opaque: for the cryptography community, what is interesting is to know what it is this unknown property $\mathcal{P}$ that the DNN learns. And whether it is even possible to know this property is a question in itself. We tried here to approximate this knowledge. This approach has been very empirical: just like in physics and chemistry, we have made hypotheses about the macro-functioning of the neuro-distinguisher blocks and we have verified these hypotheses.
+
+
+Our main conjecture is that the ten-layer residual block, considered as the core of the model, is acting as a compressed DDT applied on the whole ciphertext. We model our idea by a masked-ciphertext differential table. By doing so, features are no longer abstract and efficient correlations between inputs and labels as in the neural distinguisher model. In our pipeline, each one of the feature is a probability for the sample to be real knowing the mask and the sample. In the end, with our M-CDT pipeline, we successfully obtained a model which has only -0.6\% difference accuracy with the DNN and a matching of 97.3\% on round 5.
+
+
+To the best of our knowledge, this proposal is the first to create a bridge between the deep learning and the cryptanalysts' methods. Additional analysis of our pipeline (e.g. masks independence, masks independence, inputs influence, classifiers influence) are available into the code project at XXX.
+
+
